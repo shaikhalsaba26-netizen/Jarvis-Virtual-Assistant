@@ -10,8 +10,8 @@ import time
 import datetime
 
 # --- CONFIGURATION ---
-GEMINI_API_KEY = "AIzaSyD3jr1StYXqxfFiyiSdD7KTZifDG8f3b8I"
-NEWS_API_KEY ="pub_04021d5b515e4cf2b067af6c89da81b3"
+GEMINI_API_KEY = ""
+NEWS_API_KEY =""
 
 
 genai.configure(api_key=GEMINI_API_KEY)
