@@ -24,7 +24,7 @@ recognizer.pause_threshold = 0.6
 mic = sr.Microphone()
 
 with mic as source:
-    
+
     recognizer.adjust_for_ambient_noise(source, duration=0.3)
 
 def speak(text, show_text=True):
@@ -66,7 +66,7 @@ def detect_category(text):
         return "top"
 
 
-# 🔥 FINAL CLEAN NEWS FUNCTION
+# FINAL CLEAN NEWS FUNCTION
 def fetch_news(category):
     latest_news = []
     past_news = []
