@@ -24,8 +24,8 @@ recognizer.pause_threshold = 0.6
 mic = sr.Microphone()
 
 with mic as source:
+    
     recognizer.adjust_for_ambient_noise(source, duration=0.3)
-
 
 def speak(text, show_text=True):
     try:
