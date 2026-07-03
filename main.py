@@ -8,11 +8,11 @@ import pygame
 import os
 import time
 import datetime
+from dotenv import load_dotenv
+load_dotenv()
 
-# --- CONFIGURATION ---
-GEMINI_API_KEY = ""
-NEWS_API_KEY =""
-
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
@@ -63,7 +63,7 @@ def detect_category(text):
     elif "politics" in text:
         return "politics"
     else:
-        return "top"
+        return "general"
 
 
 # FINAL CLEAN NEWS FUNCTION
@@ -82,31 +82,34 @@ def fetch_news(category):
 
     for code, name in countries.items():
         try:
-            url = f"https://newsdata.io/api/1/news?apikey={NEWS_API_KEY}&category={category}&country={code}&language=en"
+            url = f"https://gnews.io/api/v4/top-headlines?country={code}&category={category}&lang=en&apikey={NEWS_API_KEY}"
             data = requests.get(url, timeout=6).json()
+            print(data)
+            print(type(data))
 
-            results = data.get("results", [])
+            results = data.get("articles", [])
+            
 
             # 🔥 take only English + valid titles
-            clean = [a for a in results if a.get("title") and a.get("language") == "english"]
+            clean = [a for a in results if a.get("title")]
 
             if len(clean) >= 2:
                 # Latest
                 latest_news.append({
                     "title": clean[0]["title"],
                     "country": name,
-                    "date": clean[0].get("pubDate", "")[:10]
+                    "date": clean[0].get("publishedAT", "")[:10]
                 })
 
                 # Past (2nd item)
                 past_news.append({
                     "title": clean[1]["title"],
                     "country": name,
-                    "date": clean[1].get("pubDate", "")[:10]
+                    "date": clean[1].get("publishedAT", "")[:10]
                 })
 
-        except:
-            continue
+        except Exception as e:
+          print(f"News API error for {name}: {e}")
 
     return latest_news[:4], past_news[:4]
 
