@@ -14,6 +14,7 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
+
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
@@ -68,8 +69,7 @@ def detect_category(text):
 
 # FINAL CLEAN NEWS FUNCTION
 def fetch_news(category):
-    latest_news = []
-    past_news = []
+    news = []
 
     countries = {
         "in": "India",
@@ -80,48 +80,58 @@ def fetch_news(category):
         "de": "Germany"
     }
 
+    seen_titles = set()
+
     for code, name in countries.items():
         try:
-            url = f"https://gnews.io/api/v4/top-headlines?country={code}&category={category}&lang=en&apikey={NEWS_API_KEY}"
-            data = requests.get(url, timeout=6).json()
-            print(data)
-            print(type(data))
+            url = (
+                f"https://gnews.io/api/v4/top-headlines?"
+                f"country={code}&category={category}"
+                f"&lang=en&max=10&apikey={NEWS_API_KEY}"
+            )
 
-            results = data.get("articles", [])
-            
+            data = requests.get(url, timeout=8).json()
 
-            # 🔥 take only English + valid titles
-            clean = [a for a in results if a.get("title")]
+            if "articles" not in data:
+                continue
 
-            if len(clean) >= 2:
-                # Latest
-                latest_news.append({
-                    "title": clean[0]["title"],
+            for article in data["articles"]:
+
+                title = article.get("title")
+
+                if not title:
+                    continue
+
+                if title in seen_titles:
+                    continue
+
+                seen_titles.add(title)
+
+                news.append({
+                    "title": title,
                     "country": name,
-                    "date": clean[0].get("publishedAT", "")[:10]
-                })
-
-                # Past (2nd item)
-                past_news.append({
-                    "title": clean[1]["title"],
-                    "country": name,
-                    "date": clean[1].get("publishedAT", "")[:10]
+                    "date": article.get("publishedAt", "")[:10]
                 })
 
         except Exception as e:
-          print(f"News API error for {name}: {e}")
+            print(f"{name} :", e)
 
-    return latest_news[:4], past_news[:4]
+    latest_news = news[:3]
+
+    past_news = news[3:6]
+
+    return latest_news, past_news
 
 
 def processCommand(c):
     c = c.lower().strip()
+    print("COMMAND RECEIVED:", c)
 
-    if "who are you" in c:
-        speak("I am Jarvis, your personal AI assistant.")
+    if any(x in c for x in ["who are you", "who are u", "who're you"]):
+       speak("I am Jarvis, your personal AI assistant.")
 
-    elif "how are you" in c:
-        speak("I am doing great! Thank you.")
+    elif any(x in c for x in ["how are you", "how r you"]):
+      speak("I am doing great! Thank you.")
 
     elif "open google" in c:
         speak("Opening Google")
